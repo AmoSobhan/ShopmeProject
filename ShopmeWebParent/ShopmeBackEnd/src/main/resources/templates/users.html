@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html xmlns:th="http://thymeleaf.org">
+
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0">
+
+    <link rel="stylesheet" type="text/css" th:href="@{/webjars/bootstrap/5.3.1/css/bootstrap.min.css}">
+    <link rel="stylesheet" type="text/css" th:href="@{/fontawesome/all.min.css}">
+    <link rel="stylesheet" type="text/css" th:href="@{/style.css}">
+    <script type="text/javascript" th:src="@{/webjars/bootstrap/5.3.1/js/bootstrap.min.js}"></script>
+    <script type="text/javascript" th:src="@{/webjars/jquery/3.7.0/jquery.min.js}"></script>
+    <title>ShopMe CP</title>
+</head>
+
+<body>
+<div class="container-fluid">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <a class="navbar-brand m-1" th:href="@{/}">
+            <img th:src="@{/images/shop_logo.jpg}">
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#topNavbar">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="topNavbar">
+            <ul class="navbar-nav">
+                <li class="nav-item">
+                    <a class="nav-link" th:href="@{/users}"> Users </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" th:href="@{/categories}"> Categories </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" th:href="@{/brands}"> Brands </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" th:href="@{/products}"> Products </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" th:href="@{/customers}"> Customers </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" th:href="@{/shipping}"> Shipping </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" th:href="@{/orders}"> Orders </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" th:href="@{/report}"> Sales Report </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" th:href="@{/articles}"> Articles </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" th:href="@{/menus}"> Menus </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" th:href="@{/settings}"> Settings </a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+</div>
+
+<div class="container-fluid">
+    <div>
+        <h2>Manage Users</h2>
+        <a th:href="@{/users/new}">Create New User</a>
+    </div>
+
+    <div th:if="${message != null}" class="alert alert-success text-center">
+        [[${message}]]
+    </div>
+
+    <div>
+        <table class="table table-responsive-xl table-hover table-bordered table-striped">
+            <thead class="table-dark">
+            <tr>
+                <th>ID</th>
+                <th>Photo</th>
+                <th>Email</th>
+                <th>password</th>
+                <th>First Name</th>
+                <th>Last Name</th>
+                <th>Roles</th>
+                <th>Enabled</th>
+                <th></th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="user : ${listUsers}">
+                <td>[[${user.id}]]</td>
+                <td><span class="fa-solid fa-image-portrait fa-3x"></span></td>
+                <td>[[${user.email}]]</td>
+                <td>[[${user.password}]]</td>
+                <td>[[${user.firstName}]]</td>
+                <td>[[${user.lastName}]]</td>
+                <td>[[${user.roles}]]</td>
+                <td>
+                    <a th:if="${user.enabled == true}" class="fa-solid fa-check-to-slot fa-2xl icon-green btn"
+                        th:href="@{'/users/' + ${user.id} + '/enabled/false'}"
+                        title="Disable User"></a>
+                    <a th:if="${user.enabled == false}" class="fa-solid fa-check-to-slot fa-2xl icon-dark btn"
+                        th:href="@{'/users/' + ${user.id} + '/enabled/true'}"
+                        title="Enable User"></a>
+                </td>
+                <td>
+                    <a class="fa-edit fa-solid fa-2x icon-green btn" title="Edit user"
+                       th:href="@{'/users/edit/' + ${user.id}}"></a>
+                    <a class="fa-delete-left fa-solid fa-2x icon-orangered btn linkDelete" title="Delete user"
+                       th:href="@{'/users/delete/' + ${user.id}}"
+                       th:userId="${user.id}"></a>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+    <div class="modal fade text-center" id="confirmModal">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title"> Delete Confirmation </h4>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal">&times;</button>
+                </div>
+
+                <div class="modal-body">
+                    <span id="confirmText"></span>
+                </div>
+
+                <div class="modal-footer">
+                    <a class="btn btn-success" href="" id="yesButton">Yes</a>
+                    <button type="button" class="btn btn-danger " data-bs-dismiss="modal">No</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="text-center">
+        <p>Shopme Control Panel - Copyright &copy; Shopme</p>
+    </div>
+</div>
+<script>
+    $(document).ready(function () {
+        $('.linkDelete').on("click", function (e) {
+            e.preventDefault();
+            link = $(this)
+            userId = link.attr("userId");
+            $("#yesButton").attr("href", link.attr("href"));
+            $("#confirmText").text("Are you sure you want to delete this User id " + userId + " ?");
+            $('#confirmModal').modal('show');
+        });
+    });
+</script>
+</body>
+
+</html>

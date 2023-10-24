@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html xmlns:th="http://thymeleaf.org">
+
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0">
+
+    <link rel="stylesheet" type="text/css" th:href="@{/webjars/bootstrap/5.3.1/css/bootstrap.min.css}">
+    <link rel="stylesheet" type="text/css" th:href="@{/fontawesome/all.css}">
+    <script type="text/javascript" th:src="@{/webjars/bootstrap/5.3.1/js/bootstrap.min.js}"></script>
+    <script type="text/javascript" th:src="@{/webjars/jquery/3.7.0/jquery.min.js}"></script>
+    <title>[[${pageTitle}]]</title>
+</head>
+
+<body>
+<div class="container-fluid">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <a class="navbar-brand m-1" th:href="@{/}">
+            <img th:src="@{/images/shop_logo.jpg}">
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#topNavbar">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="topNavbar">
+            <ul class="navbar-nav">
+                <li class="nav-item">
+                    <a class="nav-link" th:href="@{/users}"> Users </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" th:href="@{/categories}"> Categories </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" th:href="@{/brands}"> Brands </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" th:href="@{/products}"> Products </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" th:href="@{/customers}"> Customers </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" th:href="@{/shipping}"> Shipping </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" th:href="@{/orders}"> Orders </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" th:href="@{/report}"> Sales Report </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" th:href="@{/articles}"> Articles </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" th:href="@{/menus}"> Menus </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" th:href="@{/settings}"> Settings </a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+</div>
+
+<div class="container-fluid">
+    <div>
+        <h2>Manage Users | [[${pageTitle}]] with ID: [[${user.id}]]</h2>
+    </div>
+
+    <form th:action="@{/users/save}" th:object="${user}" method="post" style="max-width: 750px;
+        margin: 0 auto" onsubmit="return checkEmailUnique(this)">
+        <input type="hidden" th:field="*{id}">
+        <div class="border border-secondary rounded p-3">
+            <div class="grid row">
+                <label class="col-sm-4 col-form-label">Email:</label>
+                <div class="col-sm-8">
+                    <input class="form-control" type="email" th:field="*{email}" required minlength="8" maxlength="144">
+                </div>
+            </div>
+            <div class="grid row">
+                <label class="col-sm-4 col-form-label">First Name:</label>
+                <div class="col-sm-8">
+                    <input class="form-control" type="text" th:field="*{firstName}" required minlength="2"
+                           maxlength="45">
+                </div>
+            </div>
+            <div class="grid row">
+                <label class="col-sm-4 col-form-label">Last Name:</label>
+                <div class="col-sm-8">
+                    <input class="form-control" type="text" th:field="*{lastName}" required minlength="2"
+                           maxlength="45">
+                </div>
+            </div>
+            <div class="grid row">
+                <label class="col-sm-4 col-form-label">Password:</label>
+                <div class="col-sm-8">
+                    <input th:if="${id == null}" class="form-control" type="password" th:field="*{password}" required
+                           minlength="8" maxlength="20">
+                    <input th:if="${id != null}" class="form-control" type="password" th:field="*{password}"
+                           minlength="8" maxlength="20">
+                </div>
+            </div>
+            <div class="grid row">
+                <label class="col-sm-4 col-form-label">Roles:</label>
+                <div class="col-sm-8">
+                    <th:block th:each="role : ${rolesList}">
+                        <input class="m-2" type="checkbox" th:field="*{roles}" th:text="${role.name}"
+                               th:value="${role.id}"/>
+                        - <small> [[${role.description}]] </small>
+                        <br>
+                    </th:block>
+                </div>
+            </div>
+            <br>
+            <div class="grid row">
+                <label class="col-sm-4 col-form-label">Enabled:</label>
+                <div class="col-sm-8">
+                    <input type="checkbox" th:field="*{enabled}"/>
+                </div>
+            </div>
+
+
+            <div class="text-center m-3">
+                <input class="btn btn-primary m-3" type="submit" value="Save">
+                <input class="btn btn-secondary" type="button" value="Cancel" id="cancelButton">
+            </div>
+        </div>
+    </form>
+
+    <div class="text-center">
+        <p>Shopme Control Panel - Copyright &copy; Shopme</p>
+    </div>
+</div>
+
+<div class="modal fade text-center" id="modalDialog">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="modalTitle"> Warning </h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal">&times;</button>
+            </div>
+
+            <div class="modal-body">
+                <span id="modalBody"></span>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-danger " data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    $(document).ready(function () {
+        $("#cancelButton").on("click", function () {
+            window.location = "[[@{/users}]]"
+        });
+    });
+
+    // find a best practice for this ajax call
+    function checkEmailUnique(form) {
+        url = "[[@{/users/check_email}]]";
+        userId = $('#id').val()
+        userEmail = $('#email').val();
+        csrfToken = $("input[name='_csrf']").val();
+        params = {id: userId, email: userEmail, _csrf: csrfToken};
+        $.post(url, params, function (response) {
+            if (response === "OK") {
+                form.submit();
+            } else if (response === "Duplicated") {
+                showModalDialog("Warning", "There is another user with this email");
+            } else {
+                showModalDialog("Error", "Unknown response from server");
+            }
+        }).fail(function () {
+            showModalDialog("Error", "Could not connect to server");
+        });
+
+        function showModalDialog(title, message) {
+            $("#modalTitle").text(title);
+            $("#modalBody").text(message);
+            $("#modalDialog").modal('show');
+        }
+
+        return false;
+    }
+
+
+</script>
+
+</body>
+
+</html>

@@ -19,7 +19,7 @@ public class User {
     private String password;
 
     @Column(name = "first_name", length = 45)
-    private String fistName;
+    private String firstName;
 
     @Column(name = "last_name", length = 45)
     private String lastName;
@@ -38,10 +38,10 @@ public class User {
     public User() {
     }
 
-    public User(String email, String password, String fistName, String lastName) {
+    public User(String email, String password, String firstName, String lastName) {
         this.email = email;
         this.password = password;
-        this.fistName = fistName;
+        this.firstName = firstName;
         this.lastName = lastName;
     }
 
@@ -69,12 +69,12 @@ public class User {
         this.password = password;
     }
 
-    public String getFistName() {
-        return fistName;
+    public String getFirstName() {
+        return firstName;
     }
 
-    public void setFistName(String fistName) {
-        this.fistName = fistName;
+    public void setFirstName(String fistName) {
+        this.firstName = fistName;
     }
 
     public String getLastName() {
@@ -111,5 +111,19 @@ public class User {
 
     public void addRole(Role role) {
         this.roles.add(role);
+    }
+
+    @Override
+    public String toString() {
+        return "User{" +
+                "id=" + id +
+                ", email='" + email + '\'' +
+                ", password='" + password + '\'' +
+                ", firstName='" + firstName + '\'' +
+                ", lastName='" + lastName + '\'' +
+                ", photos='" + photos + '\'' +
+                ", enabled=" + enabled +
+                ", roles=" + roles +
+                '}';
     }
 }

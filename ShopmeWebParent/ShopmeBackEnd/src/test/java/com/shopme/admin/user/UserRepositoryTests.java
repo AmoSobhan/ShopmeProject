@@ -7,6 +7,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.annotation.Rollback;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -35,9 +37,8 @@ public class UserRepositoryTests {
     }
 
     @Test
-    public void testCreatUserWithTwoRoles()
-    {
-        User plato =  new User("plato@gmail.com", "123", "plato", "mosol");
+    public void testCreatUserWithTwoRoles() {
+        User plato = new User("plato@gmail.com", "123", "plato", "mosol");
         Role roleEditor = new Role(3);
         Role roleAssistant = new Role(5);
 
@@ -53,8 +54,7 @@ public class UserRepositoryTests {
 
     //update tests.
     @Test
-    public void testUpdateUserDetails()
-    {
+    public void testUpdateUserDetails() {
         User plato = repo.findById(2).get();
         plato.setEnabled(true);
         plato.setEmail("plato@yahoo.com");
@@ -63,8 +63,7 @@ public class UserRepositoryTests {
     }
 
     @Test
-    public void testUpdateUserRole()
-    {
+    public void testUpdateUserRole() {
         User plato = repo.findById(2).get();
         Role roleEditor = new Role(3);
         plato.getRoles().remove(roleEditor);
@@ -75,9 +74,40 @@ public class UserRepositoryTests {
 
     //delete tests
     @Test
-    public void testDeleteUser()
-    {
+    public void testDeleteUser() {
         Integer userId = 2;
         repo.deleteById(userId);
+    }
+
+    @Test
+    public void testGetUserByEmail() {
+        String email = "sob0@gmail.com";
+        User user = repo.getUserByEmail(email);
+
+        assertThat(user).isNotNull();
+    }
+
+    @Test
+    public void testEncryptedPassword() {
+        String email = "123@gm.com";
+        User user = repo.getUserByEmail(email);
+        // saved password of the user in database is '12345678'
+        String encodedSavedPassword = user.getPassword();
+        PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+        boolean result = passwordEncoder.matches("12345678", encodedSavedPassword);
+        assertThat(result).isTrue();
+    }
+
+    @Test
+    public void testCountById() {
+        Integer id = 1;
+        Long countById = repo.countById(id);
+        assertThat(countById).isNotNull().isGreaterThan(0);
+    }
+
+    @Test
+    public void testUpdateEnableStatus() {
+       Integer id = 40;
+       repo.updateEnabledStatus(id, true);
     }
 }
