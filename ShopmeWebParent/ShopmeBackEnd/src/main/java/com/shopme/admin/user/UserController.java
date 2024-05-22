@@ -25,113 +25,121 @@ import java.util.Objects;
 @Controller
 public class UserController {
 
-	@Autowired
-	UserService service;
+    final
+    UserService service;
 
-	@GetMapping("/users")
-	public String getUsersFirstPage(Model model) {
-		return getUserslistByPage(1, model, "firstName", "asc");
-	}
+    public UserController(UserService service) {
+        this.service = service;
+    }
 
-	@GetMapping("/users/page/{pageNum}")
-	public String getUserslistByPage(@PathVariable("pageNum") Integer pageNum, Model model,
-			@Param("sortField") String sortField, @Param("sordtDir") String sortDir) {
-		if (pageNum <= 0) {
-			pageNum = 1;
-		}
+    @GetMapping("/users")
+    public String getUsersFirstPage(Model model) {
+        return getUserslistByPage(1, model, "firstName", "asc", null);
+    }
 
-		Page<User> page = service.listByPage(pageNum, sortField, sortDir);
-		List<User> listUsers = page.getContent();
+    @GetMapping("/users/page/{pageNum}")
+    public String getUserslistByPage(@PathVariable("pageNum") Integer pageNum, Model model,
+                                     @Param("sortField") String sortField, @Param("sordtDir") String sortDir,
+                                     @Param("keyword") String keyword) {
+        if (pageNum <= 0) {
+            pageNum = 1;
+        }
 
-		long startCount = (pageNum - 1) * UserService.USER_PER_PAGE + 1;
-		long endCount = startCount + page.getNumberOfElements() - 1;
+        Page<User> page = service.listByPage(pageNum, sortField, sortDir, keyword);
+        List<User> listUsers = page.getContent();
+
+        long startCount = (pageNum - 1) * UserService.USER_PER_PAGE + 1;
+        long endCount = startCount + page.getNumberOfElements() - 1;
 //		long endCount = startCount + UserService.USER_PER_PAGE - 1;
 //		if (endCount > page.getTotalElements()) {
 //			endCount = page.getTotalElements();
 //		}
-		String reverseSortDir = sortDir.equals("asc") ? "desc" : "asc";
+        String reverseSortDir = sortDir.equals("asc") ? "desc" : "asc";
 
-		model.addAttribute("currentPage", pageNum);
-		model.addAttribute("totalPages", page.getTotalPages());
-		model.addAttribute("startCount", startCount);
-		model.addAttribute("endCount", endCount);
-		model.addAttribute("totalItems", page.getTotalElements());
-		model.addAttribute("listUsers", listUsers);
-		model.addAttribute("sortField", sortField);
-		model.addAttribute("sortDir", sortDir);
-		model.addAttribute("reverseSortDir", reverseSortDir);
+        model.addAttribute("currentPage", pageNum);
+        model.addAttribute("totalPages", page.getTotalPages());
+        model.addAttribute("startCount", startCount);
+        model.addAttribute("endCount", endCount);
+        model.addAttribute("totalItems", page.getTotalElements());
+        model.addAttribute("listUsers", listUsers);
+        model.addAttribute("sortField", sortField);
+        model.addAttribute("sortDir", sortDir);
+        model.addAttribute("reverseSortDir", reverseSortDir);
+        model.addAttribute("keyword", keyword);
 
-		return "users";
-	}
+        return "users";
+    }
 
-	@GetMapping("users/new")
-	public String newUser(Model model) {
-		User user = new User();
-		List<Role> rolesList = service.listAllRoles();
+    @GetMapping("users/new")
+    public String newUser(Model model) {
+        User user = new User();
+        List<Role> rolesList = service.listAllRoles();
 
-		model.addAttribute("user", user);
-		model.addAttribute("rolesList", rolesList);
-		model.addAttribute("pageTitle", "Create New User");
-		return "user_form";
-	}
+        model.addAttribute("user", user);
+        model.addAttribute("rolesList", rolesList);
+        model.addAttribute("pageTitle", "Create New User");
+        return "user_form";
+    }
 
-	@PostMapping("users/save")
-	public String saveUser(User user, RedirectAttributes redirectAttributes,
-			@RequestParam("image") MultipartFile multipartFile) throws IOException {
-		if (!multipartFile.isEmpty()) {
-			String fileName = StringUtils.cleanPath(Objects.requireNonNull(multipartFile.getOriginalFilename()));
-			user.setPhotos(fileName);
+    @PostMapping("users/save")
+    public String saveUser(User user, RedirectAttributes redirectAttributes,
+                           @RequestParam("image") MultipartFile multipartFile) throws IOException {
+        if (!multipartFile.isEmpty()) {
+            String fileName = StringUtils.cleanPath(Objects.requireNonNull(multipartFile.getOriginalFilename()));
+            user.setPhotos(fileName);
 
-			User savedUser = service.saveUser(user);
-			String uploadDir = "user-photos/" + savedUser.getId();
+            User savedUser = service.saveUser(user);
+            String uploadDir = "user-photos/" + savedUser.getId();
 
-			FileUploadUtil.cleanDir(uploadDir);
-			FileUploadUtil.saveFile(uploadDir, fileName, multipartFile);
+            FileUploadUtil.cleanDir(uploadDir);
+            FileUploadUtil.saveFile(uploadDir, fileName, multipartFile);
 
-		} else {
+        } else {
 
-			if (user.getPhotos().isEmpty())
-				user.setPhotos(null);
-			service.saveUser(user);
-		}
+            if (user.getPhotos().isEmpty())
+                user.setPhotos(null);
+            service.saveUser(user);
+        }
 
-		redirectAttributes.addFlashAttribute("message", "The User has been saved successfully.");
-		return "redirect:/users";
-	}
+        redirectAttributes.addFlashAttribute("message", "The User has been saved successfully.");
 
-	@GetMapping("users/edit/{id}")
-	public String editUser(@PathVariable("id") Integer id, Model model, RedirectAttributes redirectAttributes) {
-		try {
-			User user = service.getUserById(id);
-			List<Role> rolesList = service.listAllRoles();
-			model.addAttribute("user", user);
-			model.addAttribute("rolesList", rolesList);
-			model.addAttribute("pageTitle", "Edit User");
-			return "user_form";
-		} catch (UserNotFoundException exception) {
-			redirectAttributes.addFlashAttribute("message", exception.getMessage());
-			return "redirect:/users";
-		}
-	}
+        String userEmail = user.getEmail();
+        return "redirect:/users/page/1?sortField=id&sortDir=asc&keyword=" + userEmail;
+    }
 
-	@GetMapping("users/delete/{id}")
-	public String deleteUser(@PathVariable("id") Integer id, Model model, RedirectAttributes redirectAttributes) {
-		try {
-			service.delete(id);
-			redirectAttributes.addFlashAttribute("message", "the User with ID: " + id + " deleted.");
-		} catch (UserNotFoundException exception) {
-			redirectAttributes.addFlashAttribute("message", exception.getMessage());
-		}
-		return "redirect:/users";
-	}
+    @GetMapping("users/edit/{id}")
+    public String editUser(@PathVariable("id") Integer id, Model model, RedirectAttributes redirectAttributes) {
+        try {
+            User user = service.getUserById(id);
+            List<Role> rolesList = service.listAllRoles();
+            model.addAttribute("user", user);
+            model.addAttribute("rolesList", rolesList);
+            model.addAttribute("pageTitle", "Edit User");
+            return "user_form";
+        } catch (UserNotFoundException exception) {
+            redirectAttributes.addFlashAttribute("message", exception.getMessage());
+            return "redirect:/users";
+        }
+    }
 
-	@GetMapping("users/{id}/enabled/{state}")
-	public String updateUserEnableStatus(@PathVariable Integer id, @PathVariable boolean state,
-			RedirectAttributes redirectAttributes) {
-		service.updateUserEnableStatus(id, state);
-		String newState = state ? "Enabled" : "Disabled";
-		String message = "The User with ID: " + id + " has been " + newState + ".";
-		redirectAttributes.addFlashAttribute("message", message);
-		return "redirect:/users";
-	}
+    @GetMapping("users/delete/{id}")
+    public String deleteUser(@PathVariable("id") Integer id, Model model, RedirectAttributes redirectAttributes) {
+        try {
+            service.delete(id);
+            redirectAttributes.addFlashAttribute("message", "the User with ID: " + id + " deleted.");
+        } catch (UserNotFoundException exception) {
+            redirectAttributes.addFlashAttribute("message", exception.getMessage());
+        }
+        return "redirect:/users";
+    }
+
+    @GetMapping("users/{id}/enabled/{state}")
+    public String updateUserEnableStatus(@PathVariable Integer id, @PathVariable boolean state,
+                                         RedirectAttributes redirectAttributes) {
+        service.updateUserEnableStatus(id, state);
+        String newState = state ? "Enabled" : "Disabled";
+        String message = "The User with ID: " + id + " has been " + newState + ".";
+        redirectAttributes.addFlashAttribute("message", message);
+        return "redirect:/users";
+    }
 }
