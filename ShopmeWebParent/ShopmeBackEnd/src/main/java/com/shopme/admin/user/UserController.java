@@ -3,6 +3,7 @@ package com.shopme.admin.user;
 import com.shopme.admin.FileUploadUtil;
 import com.shopme.commen.entity.Role;
 import com.shopme.commen.entity.User;
+import jakarta.servlet.http.HttpServletResponse;
 import org.mockito.internal.util.StringUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -142,4 +143,26 @@ public class UserController {
         redirectAttributes.addFlashAttribute("message", message);
         return "redirect:/users";
     }
+
+    @GetMapping("/users/export/csv")
+    public void exportToCsv(HttpServletResponse response) throws IOException {
+        List<User> usersList = service.listAllUsers();
+        UserCsvExporter exporter = new UserCsvExporter();
+        exporter.export(usersList, response);
+    }
+
+    @GetMapping("/users/export/excel")
+    public void exportToExcel(HttpServletResponse response) throws IOException {
+        List<User> usersList = service.listAllUsers();
+        UserExcelExporter exporter = new UserExcelExporter();
+        exporter.export(usersList, response);
+    }
+
+    @GetMapping("/users/export/pdf")
+    public void exportToPdf(HttpServletResponse response) throws IOException {
+        List<User> usersList = service.listAllUsers();
+        var exporter = new UserPdfExporter();
+        exporter.export(usersList, response);
+    }
+
 }
